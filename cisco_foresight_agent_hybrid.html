@@ -548,7 +548,7 @@
                 weight: 1.0
             },
             'SD-WAN Optimization': {
-                keywords: ['sdwan', 'sd-wan', 'video', 'conference', 'teams', 'zoom', 'webex', 'quality', 'qos', 'voice'],
+                keywords: ['sdwan', 'sd-wan', 'wan optimization', 'wan performance', 'bandwidth', 'latency', 'jitter', 'network performance', 'video', 'conference', 'teams', 'zoom', 'webex', 'quality', 'qos', 'voice'],
                 weight: 1.0
             },
             'Capacity Planning': {
@@ -565,6 +565,7 @@
         function keywordMatch(userInput) {
             const input = userInput.toLowerCase();
             const scores = {};
+            console.log('Keyword matching for input:', input);
             
             for (const [scenario, config] of Object.entries(scenarioMappings)) {
                 let score = 0;
@@ -574,18 +575,22 @@
                     if (input.includes(keyword)) {
                         score += config.weight;
                         matchedKeywords++;
+                        console.log(`Matched "${keyword}" in scenario "${scenario}"`);
                     }
                 }
                 
                 if (matchedKeywords > 0) {
                     scores[scenario] = score / config.keywords.length * 100;
+                    console.log(`${scenario}: ${scores[scenario]}% confidence`);
                 }
             }
             
             // Sort by score and return top match
             const sortedScores = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+            console.log('All scores:', sortedScores);
             
             if (sortedScores.length > 0 && sortedScores[0][1] > 30) {
+                console.log('Returning top match:', sortedScores[0]);
                 return {
                     scenario: sortedScores[0][0],
                     confidence: sortedScores[0][1],
@@ -593,6 +598,7 @@
                 };
             }
             
+            console.log('No match found above 30% threshold');
             return null;
         }
 
