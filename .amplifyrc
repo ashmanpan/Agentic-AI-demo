@@ -1,0 +1,15 @@
+{
+  "providers": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-agenticaidemo-dev-a9c81-authRole",
+      "UnauthRoleArn": "arn:aws:iam::881490094967:role/amplify-agenticaidemo-dev-a9c81-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::881490094967:role/amplify-agenticaidemo-dev-a9c81-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-agenticaidemo-dev-a9c81-deployment",
+      "UnauthRoleName": "amplify-agenticaidemo-dev-a9c81-unauthRole",
+      "StackName": "amplify-agenticaidemo-dev-a9c81",
+      "StackId": "arn:aws:cloudformation:us-east-1:881490094967:stack/amplify-agenticaidemo-dev-a9c81",
+      "AmplifyAppId": "d27h8cgj3iixom"
+    }
+  }
+}
