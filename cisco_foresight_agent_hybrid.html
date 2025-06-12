@@ -681,7 +681,7 @@ Best matching scenario:`;
             const keywordResult = keywordMatch(userInput);
             
             // If keyword matching gives high confidence, use it
-            if (keywordResult && keywordResult.confidence > 70) {
+            if (keywordResult && keywordResult.confidence >= 70) {
                 return keywordResult;
             }
             
