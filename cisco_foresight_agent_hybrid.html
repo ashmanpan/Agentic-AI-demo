@@ -241,6 +241,126 @@
             font-size: 12px;
             color: #999;
         }
+
+        /* Admin Panel Styles */
+        .admin-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .admin-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            width: 400px;
+            max-width: 90%;
+        }
+
+        .admin-panel h2 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        .admin-form-group {
+            margin-bottom: 15px;
+        }
+
+        .admin-form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .admin-form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .admin-form-group input[type="password"] {
+            font-family: monospace;
+        }
+
+        .admin-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .admin-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .admin-btn-primary {
+            background-color: #0078d7;
+            color: white;
+        }
+
+        .admin-btn-primary:hover {
+            background-color: #106ebe;
+        }
+
+        .admin-btn-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .admin-btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+
+        .admin-status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .admin-status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .admin-status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .admin-link {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: #999;
+            text-decoration: none;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .admin-link:hover {
+            color: #666;
+        }
         
         .chat-container {
             width: 100%;
@@ -566,9 +686,15 @@
             }
         };
 
-        // OpenAI API configuration (user needs to add their key)
-        const OPENAI_API_KEY = ''; // Users need to add their API key here
+        // OpenAI API configuration
+        let OPENAI_API_KEY = localStorage.getItem('cisco_openai_key') || '';
         const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
+
+        // Admin credentials (in production, use proper authentication)
+        const ADMIN_CREDENTIALS = {
+            username: 'cisco_admin',
+            password: 'ForesightAgent2024!'
+        };
 
         // Keyword matching function
         function keywordMatch(userInput) {
@@ -5447,7 +5573,136 @@ access-list BRANCH_TO_DC line 45 extended permit tcp object-group BRANCH_NETS ho
                     handleAISearch();
                 }
             });
+
+            // Load saved API key on page load
+            updateApiKeyStatus();
+        });
+
+        // Admin Panel Functions
+        function openAdminPanel() {
+            document.getElementById('adminOverlay').style.display = 'flex';
+            document.getElementById('adminUsername').focus();
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('adminOverlay').style.display = 'none';
+            clearAdminForm();
+        }
+
+        function clearAdminForm() {
+            document.getElementById('adminUsername').value = '';
+            document.getElementById('adminPassword').value = '';
+            document.getElementById('adminApiKey').value = '';
+            document.getElementById('apiKeyGroup').style.display = 'none';
+            document.getElementById('adminLoginBtn').textContent = 'Login';
+            document.getElementById('adminStatus').innerHTML = '';
+        }
+
+        function handleAdminLogin() {
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+            const statusDiv = document.getElementById('adminStatus');
+
+            // Clear previous status
+            statusDiv.innerHTML = '';
+
+            if (!username || !password) {
+                showAdminStatus('Please enter both username and password', 'error');
+                return;
+            }
+
+            // Check credentials
+            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+                // Show API key configuration
+                document.getElementById('apiKeyGroup').style.display = 'block';
+                document.getElementById('adminLoginBtn').textContent = 'Save Configuration';
+                document.getElementById('adminLoginBtn').onclick = saveApiKey;
+                
+                // Load existing API key if available
+                const existingKey = localStorage.getItem('cisco_openai_key');
+                if (existingKey) {
+                    document.getElementById('adminApiKey').value = existingKey;
+                }
+                
+                showAdminStatus('Authentication successful! Configure OpenAI API key below.', 'success');
+            } else {
+                showAdminStatus('Invalid credentials. Please try again.', 'error');
+            }
+        }
+
+        function saveApiKey() {
+            const apiKey = document.getElementById('adminApiKey').value.trim();
+            
+            if (!apiKey) {
+                showAdminStatus('Please enter a valid API key', 'error');
+                return;
+            }
+
+            if (!apiKey.startsWith('sk-')) {
+                showAdminStatus('API key should start with "sk-"', 'error');
+                return;
+            }
+
+            // Save to localStorage
+            localStorage.setItem('cisco_openai_key', apiKey);
+            OPENAI_API_KEY = apiKey;
+            
+            showAdminStatus('API key saved successfully!', 'success');
+            
+            setTimeout(() => {
+                closeAdminPanel();
+                updateApiKeyStatus();
+            }, 1500);
+        }
+
+        function showAdminStatus(message, type) {
+            const statusDiv = document.getElementById('adminStatus');
+            statusDiv.innerHTML = message;
+            statusDiv.className = `admin-status ${type}`;
+        }
+
+        function updateApiKeyStatus() {
+            // Update confidence indicator to show API key status
+            const hasApiKey = OPENAI_API_KEY && OPENAI_API_KEY.length > 0;
+            console.log(`OpenAI API key ${hasApiKey ? 'configured' : 'not configured'}`);
+        }
+
+        // Handle Enter key in admin form
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && document.getElementById('adminOverlay').style.display === 'flex') {
+                e.preventDefault();
+                const loginBtn = document.getElementById('adminLoginBtn');
+                loginBtn.onclick();
+            }
         });
     </script>
+
+    <!-- Admin Panel -->
+    <div class="admin-overlay" id="adminOverlay">
+        <div class="admin-panel">
+            <h2>🔧 Admin Configuration</h2>
+            <div class="admin-form-group">
+                <label for="adminUsername">Username:</label>
+                <input type="text" id="adminUsername" placeholder="Enter admin username">
+            </div>
+            <div class="admin-form-group">
+                <label for="adminPassword">Password:</label>
+                <input type="password" id="adminPassword" placeholder="Enter admin password">
+            </div>
+            <div class="admin-form-group" id="apiKeyGroup" style="display: none;">
+                <label for="adminApiKey">OpenAI API Key:</label>
+                <input type="password" id="adminApiKey" placeholder="Enter OpenAI API key (sk-...)">
+                <small style="color: #666; font-size: 12px;">API key will be stored securely in browser localStorage</small>
+            </div>
+            <div class="admin-buttons">
+                <button class="admin-btn admin-btn-secondary" onclick="closeAdminPanel()">Cancel</button>
+                <button class="admin-btn admin-btn-primary" onclick="handleAdminLogin()" id="adminLoginBtn">Login</button>
+            </div>
+            <div id="adminStatus"></div>
+        </div>
+    </div>
+
+    <!-- Admin Link -->
+    <a href="#" class="admin-link" onclick="openAdminPanel()">Admin</a>
 </body>
 </html>
