@@ -1,0 +1,17 @@
+{
+  "name": "cisco-foresight-agent",
+  "version": "1.0.0",
+  "description": "Cisco Foresight Agent UI - Hybrid AI Demo",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "test": "echo \"No tests configured\""
+  },
+  "keywords": [
+    "cisco",
+    "network",
+    "ai",
+    "diagnostics"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
