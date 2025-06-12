@@ -589,8 +589,9 @@
                 }
                 
                 if (matchedKeywords > 0) {
-                    scores[scenario] = score / config.keywords.length * 100;
-                    console.log(`${scenario}: ${scores[scenario]}% confidence`);
+                    // Better scoring: base score from matches + bonus for multiple matches
+                    scores[scenario] = (matchedKeywords * 30) + (matchedKeywords > 1 ? 20 : 0);
+                    console.log(`${scenario}: ${scores[scenario]}% confidence (${matchedKeywords} matches)`);
                 }
             }
             
