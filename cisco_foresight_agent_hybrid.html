@@ -361,6 +361,64 @@
         .admin-link:hover {
             color: #666;
         }
+
+        /* Main Login Overlay */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .login-panel {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 450px;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .login-logo {
+            margin-bottom: 30px;
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .login-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .contact-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .contact-info a {
+            color: #049fd9;
+            text-decoration: none;
+        }
+
+        .contact-info a:hover {
+            text-decoration: underline;
+        }
         
         .chat-container {
             width: 100%;
@@ -561,19 +619,22 @@
 <body>
     <div class="navbar">
         <div class="logo">
-            <svg width="80" height="24" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="0" y="20" width="8" height="20" fill="white"/>
-                <rect x="12" y="15" width="8" height="25" fill="white"/>
-                <rect x="24" y="10" width="8" height="30" fill="white"/>
-                <rect x="36" y="5" width="8" height="35" fill="white"/>
-                <rect x="48" y="10" width="8" height="30" fill="white"/>
-                <rect x="60" y="15" width="8" height="25" fill="white"/>
-                <rect x="72" y="20" width="8" height="20" fill="white"/>
-                <text x="90" y="35" fill="white" font-family="Arial, sans-serif" font-size="24" font-weight="bold">CISCO</text>
+            <svg width="120" height="32" viewBox="0 0 240 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Cisco Bridge Logo -->
+                <rect x="10" y="40" width="12" height="30" rx="2" fill="#049fd9"/>
+                <rect x="28" y="35" width="12" height="35" rx="2" fill="#049fd9"/>
+                <rect x="46" y="25" width="12" height="45" rx="2" fill="#049fd9"/>
+                <rect x="64" y="15" width="12" height="55" rx="2" fill="#049fd9"/>
+                <rect x="82" y="25" width="12" height="45" rx="2" fill="#049fd9"/>
+                <rect x="100" y="35" width="12" height="35" rx="2" fill="#049fd9"/>
+                <rect x="118" y="40" width="12" height="30" rx="2" fill="#049fd9"/>
+                <!-- Cisco Text -->
+                <text x="145" y="50" fill="white" font-family="Arial, sans-serif" font-size="28" font-weight="bold">CISCO</text>
             </svg>
-            <span>Foresight Agent UI (Demo)</span>
+            <span>Foresight Agent UI (Demo) - Build 01306</span>
         </div>
         <div class="actions">
+            <button onclick="logout()" style="background: none; border: 1px solid white; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-right: 10px; font-size: 12px;">Logout</button>
             <svg width="40" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="10" cy="10" r="9" stroke="white" stroke-width="2"/>
                 <path d="M10 5V15" stroke="white" stroke-width="2"/>
@@ -694,6 +755,12 @@
         const ADMIN_CREDENTIALS = {
             username: 'cisco_admin',
             password: 'ForesightAgent2024!'
+        };
+
+        // Main app credentials
+        const MAIN_CREDENTIALS = {
+            username: 'demo_user',
+            password: 'Cisco123!'
         };
 
         // Keyword matching function
@@ -5576,6 +5643,14 @@ access-list BRANCH_TO_DC line 45 extended permit tcp object-group BRANCH_NETS ho
 
             // Load saved API key on page load
             updateApiKeyStatus();
+
+            // Check if user is already logged in
+            const isLoggedIn = localStorage.getItem('cisco_demo_logged_in');
+            if (!isLoggedIn) {
+                document.getElementById('loginOverlay').style.display = 'flex';
+            } else {
+                document.getElementById('loginOverlay').style.display = 'none';
+            }
         });
 
         // Admin Panel Functions
@@ -5667,12 +5742,56 @@ access-list BRANCH_TO_DC line 45 extended permit tcp object-group BRANCH_NETS ho
             console.log(`OpenAI API key ${hasApiKey ? 'configured' : 'not configured'}`);
         }
 
-        // Handle Enter key in admin form
+        // Main Login Functions
+        function handleMainLogin() {
+            const username = document.getElementById('mainUsername').value;
+            const password = document.getElementById('mainPassword').value;
+            const statusDiv = document.getElementById('mainLoginStatus');
+
+            // Clear previous status
+            statusDiv.innerHTML = '';
+
+            if (!username || !password) {
+                showMainLoginStatus('Please enter both username and password', 'error');
+                return;
+            }
+
+            // Check credentials
+            if (username === MAIN_CREDENTIALS.username && password === MAIN_CREDENTIALS.password) {
+                // Save login state
+                localStorage.setItem('cisco_demo_logged_in', 'true');
+                
+                // Hide login overlay
+                document.getElementById('loginOverlay').style.display = 'none';
+                
+                showMainLoginStatus('Login successful! Welcome to Foresight Agent.', 'success');
+            } else {
+                showMainLoginStatus('Invalid credentials. Please try again.', 'error');
+            }
+        }
+
+        function showMainLoginStatus(message, type) {
+            const statusDiv = document.getElementById('mainLoginStatus');
+            statusDiv.innerHTML = message;
+            statusDiv.className = `admin-status ${type}`;
+        }
+
+        function logout() {
+            localStorage.removeItem('cisco_demo_logged_in');
+            location.reload();
+        }
+
+        // Handle Enter key in login and admin forms
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && document.getElementById('adminOverlay').style.display === 'flex') {
-                e.preventDefault();
-                const loginBtn = document.getElementById('adminLoginBtn');
-                loginBtn.onclick();
+            if (e.key === 'Enter') {
+                if (document.getElementById('loginOverlay').style.display === 'flex') {
+                    e.preventDefault();
+                    handleMainLogin();
+                } else if (document.getElementById('adminOverlay').style.display === 'flex') {
+                    e.preventDefault();
+                    const loginBtn = document.getElementById('adminLoginBtn');
+                    loginBtn.onclick();
+                }
             }
         });
     </script>
@@ -5699,6 +5818,46 @@ access-list BRANCH_TO_DC line 45 extended permit tcp object-group BRANCH_NETS ho
                 <button class="admin-btn admin-btn-primary" onclick="handleAdminLogin()" id="adminLoginBtn">Login</button>
             </div>
             <div id="adminStatus"></div>
+        </div>
+    </div>
+
+    <!-- Main Login Overlay -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-panel">
+            <div class="login-logo">
+                <svg width="180" height="48" viewBox="0 0 240 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Cisco Bridge Logo -->
+                    <rect x="10" y="40" width="12" height="30" rx="2" fill="#049fd9"/>
+                    <rect x="28" y="35" width="12" height="35" rx="2" fill="#049fd9"/>
+                    <rect x="46" y="25" width="12" height="45" rx="2" fill="#049fd9"/>
+                    <rect x="64" y="15" width="12" height="55" rx="2" fill="#049fd9"/>
+                    <rect x="82" y="25" width="12" height="45" rx="2" fill="#049fd9"/>
+                    <rect x="100" y="35" width="12" height="35" rx="2" fill="#049fd9"/>
+                    <rect x="118" y="40" width="12" height="30" rx="2" fill="#049fd9"/>
+                    <!-- Cisco Text -->
+                    <text x="145" y="50" fill="#049fd9" font-family="Arial, sans-serif" font-size="28" font-weight="bold">CISCO</text>
+                </svg>
+            </div>
+            <div class="login-title">Foresight Agent UI</div>
+            <div class="login-subtitle">AI-Powered Network Operations Demo</div>
+            
+            <div class="admin-form-group">
+                <label for="mainUsername">Username:</label>
+                <input type="text" id="mainUsername" placeholder="Enter username">
+            </div>
+            <div class="admin-form-group">
+                <label for="mainPassword">Password:</label>
+                <input type="password" id="mainPassword" placeholder="Enter password">
+            </div>
+            <div class="admin-buttons">
+                <button class="admin-btn admin-btn-primary" onclick="handleMainLogin()" style="width: 100%;">Access Foresight Agent</button>
+            </div>
+            <div id="mainLoginStatus"></div>
+        </div>
+        
+        <!-- Contact Info -->
+        <div class="contact-info">
+            Contact: <a href="mailto:kpanse@cisco.com">kpanse@cisco.com</a>
         </div>
     </div>
 
